@@ -3,53 +3,15 @@ import random
 import numpy as np
 
 VOCABULARY_SIZE = 20000
-### generate_batch ###
-# This function generates the train data and label batch from the dataset.
-#
-### Parameters ###
-# batch_size: the number of train_data,label pairs to produce per batch
-# curr_batch: the current batch number.
-# window_size: the size of the context
-# data: the dataset
-### Return values ###
-# train_data: train data for current batch
-# labels: labels for current batch
-def generate_batch(batch_size, data_index, window_size, data ):
-  curr_batch = 2 * window_size # modo migliore per visualizzrli quando =
-  assert batch_size % curr_batch == 0
-  batch = np.ndarray(shape=(batch_size), dtype=np.int32)
-  labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32)
-  span = 2 * window_size + 1  # [ window_size target window_size ]
-  buffer = collections.deque(maxlen=span)
-  data_index = (data_index + len(data) - span) % len(data)
-  for _ in range(span):
-    #print(data_index)
-    buffer.append(data[data_index])
-    data_index = (data_index + 1) % len(data)
-  for i in range(batch_size // curr_batch):
-    target = window_size  # target label at the center of the buffer
-    targets_to_avoid = [window_size]
-    for j in range(curr_batch):
-      while target in targets_to_avoid:
-        target = random.randint(0, span - 1)
-      targets_to_avoid.append(target)
-      batch[i * curr_batch + j] = buffer[window_size]
-      labels[i * curr_batch + j, 0] = buffer[target]
-    buffer.append(data[data_index])
-    data_index = (data_index + 1) % len(data)
-  return batch, labels
-
 data_index = 0
 
-
-# Step 3: Function to generate a training batch for the skip-gram model.
+## This is the same tensorflow implementation which i studied and rebuilded
+### I followed the same method but i re wrote i again after understanding
 def generate_batch(batch_size, num_skips, skip_window,data):
-  global data_index
-  assert batch_size % num_skips == 0
-  assert num_skips <= 2 * skip_window
-  batch = np.ndarray(shape=(batch_size), dtype=np.int32)
-  labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32)
-  span = 2 * skip_window + 1  # [ skip_window target skip_window ]
+
+  batch = np.ndarray(shape=(batch_size)) # creating an array to store the batch and labels
+  labels = np.ndarray(shape=(batch_size, 1))
+  span = 2 * skip_window + 1  # this is the no.of words that have to be found so right+left+present word
   buffer = collections.deque(maxlen=span)
   for _ in range(span):
     buffer.append(data[data_index])
@@ -69,31 +31,13 @@ def generate_batch(batch_size, num_skips, skip_window,data):
   data_index = (data_index + len(data) - span) % len(data)
   return batch, labels
 
-
-### build_dataset ###
-# This function is responsible of generating the dataset and dictionaries.
-# While constructing the dictionary take into account the unseen words by
-# retaining the rare (less frequent) words of the dataset from the dictionary
-# and assigning to them a special token in the dictionary: UNK. This
-# will train the model to handle the unseen words.
-### Parameters ###
-# words: a list of words
-# vocab_size:  the size of vocabulary
-#
-### Return values ###
-# data: list of codes (integers from 0 to vocabulary_size-1).
-#       This is the original text but words are replaced by their codes
-# dictionary: map of words(strings) to their codes(integers)
-# reverse_dictionary: maps codes(integers) to words(strings)
+# I builded this fuction by refering to tf example
 def build_dataset(words, vocab_size):
 
+global VOCABULARY_SIZE
+    counts=dict() # creating an empty dictionary to store the number of counts of each words
 
-
-
-
-
-    global VOCABULARY_SIZE
-    counts=dict()
+    # finding the cound of each words in the words
     for item in words:
 
         if item in counts:
@@ -109,27 +53,31 @@ def build_dataset(words, vocab_size):
     for word in words:
         index = dictionary.get(word, 0)
         data.append(index)
-
+    # arraging the counts in increasing to decreasing order
     sorted_counts = sorted(counts.items(), key=lambda pair: pair[1], reverse=True)
     D=counts.items()
+    # count only till vocab size and rest of the will be treated as UNK
     new_dict=sorted_counts[:VOCABULARY_SIZE]
-    suma = 0
+    suma = 0# a variable to store the count of UNK
     for i in range(len(new_dict),len(sorted_counts),1):
     #print sorted_counts[i:]
-
+        # for all words other than vocab size, count of UNK will be increased by 1
         suma = suma+sorted_counts[i][1]
+    # an ordered pair of UNK and the no.of UNKs
     unk=('UNK',suma);
+    #Appending the UNK to the exsiting dictionary in a sorted place
     b=[unk]+new_dict
+
     data1 = list(range(0, len(b)))
     e=dict(zip(data1,b))#rev
+    # making a dictionary with an index
     aB=list(zip(*b))
+    # the reverse dictionary is the coloumn without the index
     reverse_dictionary=aB[0]
+
+    # data is the index no.of each words before making the sort
+    #so the dictionary will be in that format
     dictionary=dict(zip(reverse_dictionary,data1))#dict
-
-
-
-
-
 
     data = [x+1 for x in data]
     return data,dictionary,reverse_dictionary
@@ -138,19 +86,11 @@ def build_dataset(words, vocab_size):
 # Save embedding vectors in a suitable representation for the domain identification task
 ###
 def save_vectors(vectors):
-    np.savetxt('/home/adil/Desktop/NLP/NLP_HW01/final_embedding_dic.txt',vectors)
-
-
-    ###FILL HERE###
+    #just saving the entire embedding to a txt file, later i will compare with the metadata file and get each embeddings
+    np.savetxt('/home/adil/Desktop/NLP/NLP_HW01/embd.txt',vectors)
 
 
 
-# Reads through the analogy question file.
-#    Returns:
-#      questions: a [n, 4] numpy array containing the analogy question's
-#                 word ids.
-#      questions_skipped: questions skipped due to unknown words.
-#
 def read_analogies(file, dictionary):
     questions = []
     questions_skipped = 0
