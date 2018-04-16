@@ -7,9 +7,8 @@ import tqdm
 import re
 import math
 from tensorflow.contrib.tensorboard.plugins import projector
-from data_preprocessing import build_dataset, save_vectors, read_analogies
+from data_preprocessing import build_dataset,generate_batch, save_vectors, read_analogies
 from evaluation import evaluation
-from gensim.parsing.porter import PorterStemmer
 
 ### PARAMETERS ###
 
