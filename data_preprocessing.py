@@ -5,8 +5,7 @@ import numpy as np
 VOCABULARY_SIZE = 20000
 data_index = 0
 
-## This is the same tensorflow implementation which i studied and rebuilded
-### I followed the same method but i re wrote i again after understanding
+
 def generate_batch(batch_size, num_skips, skip_window,data):
 
   batch = np.ndarray(shape=(batch_size)) # creating an array to store the batch and labels
@@ -31,7 +30,7 @@ def generate_batch(batch_size, num_skips, skip_window,data):
   data_index = (data_index + len(data) - span) % len(data)
   return batch, labels
 
-# I builded this fuction by refering to tf example
+
 def build_dataset(words, vocab_size):
 
 global VOCABULARY_SIZE
