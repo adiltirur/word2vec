@@ -13,22 +13,31 @@ import pandas as pd
 # KNN algorithm for prediction
 
 #training dataset building
-def loadDataset(filename,  trainingSet=[] ):
+def loadDataset(filename,split,  trainingSet=[] ):
 	with open(filename, 'rb') as csvfile:
 	    lines = csv.reader(csvfile)
 	    dataset = list(lines)
 	    for x in range(len(dataset)-1):
 	        for y in range(1):
 	            dataset[x][y] = float(dataset[x][y])
+	        if random.random() < split:
+	            trainingSet.append(dataset[x])
+	        else:
+	            trainingSet.append(dataset[x])
+
 
 #testing dataset building
-def loadDataset1(filename1, testSet=[]):
+def loadDataset1(filename1,split, testSet=[]):
 	with open(filename1, 'rb') as csvfile1:
 	    lines1 = csv.reader(csvfile1)
 	    dataset1 = list(lines1)
 	    for x in range(len(dataset1)-1):
 	        for y in range(1):
 	            dataset1[x][y] = float(dataset1[x][y])
+	        if random.random() < split:
+	            testSet.append(dataset1[x])
+	        else:
+	            testSet.append(dataset1[x])
 
 
 # calculating the euclidean distance between each inputs so then we can use KNN
@@ -73,8 +82,9 @@ def main():
 	# prepare data
 	trainingSet=[]
 	testSet=[]
+	split = 1
 	loadDataset('/home/adil/Desktop/train.csv',split, trainingSet)
-	loadDataset1('/home/adil/Desktop/test.csv', split, testSet)
+	loadDataset1('/home/adil/Desktop/test.csv',split,  testSet)
 	print(trainingSet[0][-1])
 	print 'Train set: ' + repr(len(trainingSet))
 	print 'Test set: ' + repr(len(testSet))
